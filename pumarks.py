@@ -74,7 +74,7 @@ def data(url, roll):
         return d
 
     try:
-        table = pandas.read_html(url, keep_default_na=False)[0]
+        table = pandas.read_html(url)[0]
     except urllib.error.HTTPError as e:
         return {ROLLCOLNAME: roll, ERRCOLNAME: e}
     return data_abspos(table) | data_relpos(table)
