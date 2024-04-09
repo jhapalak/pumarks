@@ -32,23 +32,24 @@ def pumarks(urltemplate, startroll, endroll):
         row = [d.pop(c, '') for c in colnames]
         colnames.extend(d.keys())
         row.extend(d.values())
+        print(row)
         yield colnames, row
 
 ROLLCOLNAME = 'Roll'
 DATA_ABSPOS = (
-    (ROLLCOLNAME,   ( 7, 14), lambda s: s[s.find(':')+1: ].strip()),
-    ('College',     ( 5, 14), lambda s: s[s.find(':')+1: ].strip()),
+    (ROLLCOLNAME,   ( 7,  8), lambda s: s[s.find(':')+1: ].strip()),
+    ('College',     ( 5,  8), lambda s: s[s.find(':')+1: ].strip()),
     ('Honours',     ( 5,  0), lambda s: s[s.find('(')+1: s.find(')')]),
     ('Name',        ( 7,  0), lambda s: s[s.find(':')+1: ].strip().title()),
-    ('SGPA',        (11, 11), None),
-    ('Result',      (11, 12), None),
-    ('CGPA',        (11, 13), None),
-    ('Status',      (11, 14), None),
+    ('SGPA',        (11, 10), None),
+    ('Result',      (11, 11), None),
+    ('CGPA',        (11, 12), None),
+    ('Status',      (22, 10), None),
 )
 ERRCOLNAME = DATA_ABSPOS[1][0]
 ROWSTART = 12
 COLCODE = 0
-COLGRADE = 8
+COLGRADE = 7
 ENDMARKER = 'Total'
 
 def data(url, roll):
