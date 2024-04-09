@@ -3,11 +3,14 @@ import csv
 import urllib.error
 import pandas
 
+
 parser = argparse.ArgumentParser()
 parser.add_argument('urltemplate')
 parser.add_argument('startroll', type=int)
 parser.add_argument('endroll', type=int, nargs='?')
 parser.add_argument('--output', '-o', default='pumarks.csv')
+parser.add_argument('--silent', action='store_true')
+
 
 def main(args):
     marks = pumarks(args.urltemplate, args.startroll, args.endroll)
@@ -17,11 +20,20 @@ def main(args):
         try:
             for colnames, row in marks:
                 w.writerow(row)
+                _print(args.silent, row)
         except KeyboardInterrupt:
             pass
         finally:
             if colnames is not None:
                 w.writerow(colnames)
+                _print(args.silent, colnames)
+
+
+def _print(silent, *args, **kwargs):
+    if silent:
+        return
+    print(*args, **kwargs)
+
 
 def pumarks(urltemplate, startroll, endroll):
     colnames = []
@@ -33,6 +45,7 @@ def pumarks(urltemplate, startroll, endroll):
         colnames.extend(d.keys())
         row.extend(d.values())
         yield colnames, row
+
 
 ROLLCOLNAME = 'Roll'
 DATA_ABSPOS = (
@@ -50,6 +63,7 @@ ROWSTART = 12
 COLCODE = 0
 COLGRADE = 8
 ENDMARKER = 'Total'
+
 
 def data(url, roll):
     def data_abspos(table):
@@ -78,6 +92,7 @@ def data(url, roll):
     except urllib.error.HTTPError as e:
         return {ROLLCOLNAME: roll, ERRCOLNAME: e}
     return data_abspos(table) | data_relpos(table)
+
 
 if __name__ == '__main__':
     main(parser.parse_args())
