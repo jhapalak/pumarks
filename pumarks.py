@@ -13,6 +13,11 @@ parser.add_argument('--silent', action='store_true')
 
 
 def main(args):
+    silent = args.silent
+    def p(*args, **kwargs):
+        if not silent:
+            print(*args, **kwargs)
+
     marks = pumarks(args.urltemplate, args.startroll, args.endroll)
     with open(args.output, 'w', newline='') as f:
         w = csv.writer(f)
@@ -20,19 +25,13 @@ def main(args):
         try:
             for colnames, row in marks:
                 w.writerow(row)
-                _print(args.silent, row)
+                p(row)
         except KeyboardInterrupt:
             pass
         finally:
             if colnames is not None:
                 w.writerow(colnames)
-                _print(args.silent, colnames)
-
-
-def _print(silent, *args, **kwargs):
-    if silent:
-        return
-    print(*args, **kwargs)
+                p(colnames)
 
 
 def pumarks(urltemplate, startroll, endroll):
