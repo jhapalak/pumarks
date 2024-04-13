@@ -1,6 +1,7 @@
 import argparse
 import csv
 import urllib.error
+
 import pandas
 
 
@@ -34,7 +35,7 @@ def main(args):
                 p(colnames)
 
 
-def pumarks(urltemplate, startroll, endroll):
+def pumarks(urltemplate, startroll, endroll=None):
     colnames = []
     roll = startroll - 1
     while roll != endroll:
