@@ -36,6 +36,9 @@ def main(args):
 
 
 def pumarks(urltemplate, startroll, endroll=None):
+    if endroll is not None and startroll > endroll:
+        raise ValueError('startroll > endroll')
+
     colnames = []
     roll = startroll - 1
     while roll != endroll:
