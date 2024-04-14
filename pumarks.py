@@ -14,10 +14,9 @@ parser.add_argument('--silent', action='store_true')
 
 
 def main(args):
-    silent = args.silent
-    def p(*args, **kwargs):
-        if not silent:
-            print(*args, **kwargs)
+    def p(*a, **kwargs):
+        if not args.silent:
+            print(*a, **kwargs)
 
     marks = pumarks(args.urltemplate, args.startroll, args.endroll)
     with open(args.output, 'w', newline='') as f:
