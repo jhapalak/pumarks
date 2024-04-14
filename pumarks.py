@@ -51,19 +51,19 @@ def pumarks(urltemplate, startroll, endroll=None):
 
 ROLLCOLNAME = 'Roll'
 DATA_ABSPOS = (
-    (ROLLCOLNAME,   ( 7, 14), lambda s: s[s.find(':')+1: ].strip()),
-    ('College',     ( 5, 14), lambda s: s[s.find(':')+1: ].strip()),
+    (ROLLCOLNAME,   ( 7, 10), lambda s: s[s.find(':')+1: ].strip()),
+    ('College',     ( 5,  9), lambda s: s[s.find(':')+1: ].strip()),
     ('Honours',     ( 5,  0), lambda s: s[s.find('(')+1: s.find(')')]),
     ('Name',        ( 7,  0), lambda s: s[s.find(':')+1: ].strip().title()),
-    ('SGPA',        (11, 11), None),
-    ('Result',      (11, 12), None),
-    ('CGPA',        (11, 13), None),
-    ('Status',      (11, 14), None),
+    ('SGPA',        (11, 13), None),
+    ('Result',      (11, 14), None),
+    ('CGPA',        (11, 15), None),
+    ('Status',      (24, 13), None),
 )
 ERRCOLNAME = DATA_ABSPOS[1][0]
-ROWSTART = 12
+ROWSTART = 14
 COLCODE = 0
-COLGRADE = 8
+COLGRADE = 10
 ENDMARKER = 'Total'
 
 
