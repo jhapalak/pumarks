@@ -2,8 +2,6 @@ import argparse
 import csv
 import urllib.error
 
-import pandas
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument('urltemplate')
@@ -84,6 +82,7 @@ def data(url, roll):
             r += 1
         return d
 
+    import pandas
     try:
         table = pandas.read_html(url, keep_default_na=False)[0]
     except urllib.error.HTTPError as e:
