@@ -10,14 +10,9 @@ parser.add_argument('urltemplate')
 parser.add_argument('startroll', type=int)
 parser.add_argument('endroll', type=int, nargs='?')
 parser.add_argument('--output', '-o', default='pumarks.csv')
-parser.add_argument('--silent', action='store_true')
 
 
 def main(args):
-    def display(x):
-        if not args.silent:
-            print(x)
-
     marks = pumarks(args.urltemplate, args.startroll, args.endroll)
     with open(args.output, 'w', newline='') as f:
         w = csv.writer(f)
@@ -25,13 +20,13 @@ def main(args):
         try:
             for colnames, row in marks:
                 w.writerow(row)
-                display(row)
+                print(row)
         except KeyboardInterrupt:
             pass
         finally:
             if colnames is not None:
                 w.writerow(colnames)
-                display(colnames)
+                print(colnames)
 
 
 def pumarks(urltemplate, startroll, endroll=None):
