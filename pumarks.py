@@ -35,25 +35,20 @@ def pumarks(urltemplate, startroll, endroll=None):
         yield colnames, row
 
 
-ROLLCOLNAME = 'Roll'
-DATA_ABSPOS = (
-    (ROLLCOLNAME,   ( 7, 14), lambda s: s[s.find(':')+1: ].strip()),
-    ('College',     ( 5, 14), lambda s: s[s.find(':')+1: ].strip()),
-    ('Honours',     ( 5,  0), lambda s: s[s.find('(')+1: s.find(')')]),
-    ('Name',        ( 7,  0), lambda s: s[s.find(':')+1: ].strip().title()),
-    ('SGPA',        (11, 11), None),
-    ('Result',      (11, 12), None),
-    ('CGPA',        (11, 13), None),
-    ('Status',      (11, 14), None),
-)
-ERRCOLNAME = DATA_ABSPOS[1][0]
-ROWSTART = 12
-COLCODE = 0
-COLGRADE = 8
-ENDMARKER = 'Total'
-
-
 def data(url, roll):
+    ROLLCOLNAME = 'Roll'
+    DATA_ABSPOS = (
+        (ROLLCOLNAME,   ( 7, 14), lambda s: s[s.find(':')+1: ].strip()),
+        ('College',     ( 5, 14), lambda s: s[s.find(':')+1: ].strip()),
+        ('Honours',     ( 5,  0), lambda s: s[s.find('(')+1: s.find(')')]),
+        ('Name',        ( 7,  0), lambda s: s[s.find(':')+1: ].strip().title()),
+        ('SGPA',        (11, 11), None),
+        ('Result',      (11, 12), None),
+        ('CGPA',        (11, 13), None),
+        ('Status',      (11, 14), None),
+    )
+    ERRCOLNAME = DATA_ABSPOS[1][0]
+
     def data_abspos(table):
         d = {}
         for colname, (nrow, ncol), fmtfunc in DATA_ABSPOS:
@@ -62,6 +57,11 @@ def data(url, roll):
                 text = fmtfunc(text)
             d[colname] = text
         return d
+
+    ROWSTART = 12
+    COLCODE = 0
+    COLGRADE = 8
+    ENDMARKER = 'Total'
 
     def data_relpos(table):
         d = {}
