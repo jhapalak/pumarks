@@ -4,12 +4,12 @@ import urllib.error
 
 
 def do_marks(args):
-    marks = pumarks(args.urltemplate, args.startroll, args.endroll)
+    marks_iter = marks(args.urltemplate, args.startroll, args.endroll)
     with open(args.output, 'w', newline='') as f:
         w = csv.writer(f)
         colnames = None
         try:
-            for colnames, row in marks:
+            for colnames, row in marks_iter:
                 w.writerow(row)
                 print(row)
         except KeyboardInterrupt:
@@ -20,9 +20,56 @@ def do_marks(args):
                 print(colnames)
 
 
-def pumarks(urltemplate, startroll, endroll=None):
+def marks(urltemplate, startroll, endroll=None):
     if endroll is not None and startroll > endroll:
         raise ValueError('startroll > endroll')
+
+    def data(url, roll):
+        ROLLCOLNAME = 'Roll'
+        DATA_ABSPOS = (
+            (ROLLCOLNAME,   ( 7, 14), lambda s: s[s.find(':')+1: ].strip()),
+            ('College',     ( 5, 14), lambda s: s[s.find(':')+1: ].strip()),
+            ('Honours',     ( 5,  0), lambda s: s[s.find('(')+1: s.find(')')]),
+            ('Name',        ( 7,  0), lambda s: s[s.find(':')+1: ].strip().title()),
+            ('SGPA',        (11, 11), None),
+            ('Result',      (11, 12), None),
+            ('CGPA',        (11, 13), None),
+            ('Status',      (11, 14), None),
+        )
+        ERRCOLNAME = DATA_ABSPOS[1][0]
+
+        def data_abspos(table):
+            d = {}
+            for colname, (nrow, ncol), fmtfunc in DATA_ABSPOS:
+                text = table.at[nrow, ncol]
+                if fmtfunc:
+                    text = fmtfunc(text)
+                d[colname] = text
+            return d
+
+        ROWSTART = 12
+        COLCODE = 0
+        COLGRADE = 8
+        ENDMARKER = 'Total'
+
+        def data_relpos(table):
+            d = {}
+            r = ROWSTART
+            while True:
+                code = table.at[r, COLCODE]
+                if code.strip() == ENDMARKER:
+                    break
+                grade = table.at[r, COLGRADE]
+                d[code] = grade
+                r += 1
+            return d
+
+        import pandas
+        try:
+            table = pandas.read_html(url, keep_default_na=False)[0]
+        except urllib.error.HTTPError as e:
+            return {ROLLCOLNAME: roll, ERRCOLNAME: e}
+        return data_abspos(table) | data_relpos(table)
 
     colnames = []
     roll = startroll - 1
@@ -35,56 +82,9 @@ def pumarks(urltemplate, startroll, endroll=None):
         yield colnames, row
 
 
-def data(url, roll):
-    ROLLCOLNAME = 'Roll'
-    DATA_ABSPOS = (
-        (ROLLCOLNAME,   ( 7, 14), lambda s: s[s.find(':')+1: ].strip()),
-        ('College',     ( 5, 14), lambda s: s[s.find(':')+1: ].strip()),
-        ('Honours',     ( 5,  0), lambda s: s[s.find('(')+1: s.find(')')]),
-        ('Name',        ( 7,  0), lambda s: s[s.find(':')+1: ].strip().title()),
-        ('SGPA',        (11, 11), None),
-        ('Result',      (11, 12), None),
-        ('CGPA',        (11, 13), None),
-        ('Status',      (11, 14), None),
-    )
-    ERRCOLNAME = DATA_ABSPOS[1][0]
-
-    def data_abspos(table):
-        d = {}
-        for colname, (nrow, ncol), fmtfunc in DATA_ABSPOS:
-            text = table.at[nrow, ncol]
-            if fmtfunc:
-                text = fmtfunc(text)
-            d[colname] = text
-        return d
-
-    ROWSTART = 12
-    COLCODE = 0
-    COLGRADE = 8
-    ENDMARKER = 'Total'
-
-    def data_relpos(table):
-        d = {}
-        r = ROWSTART
-        while True:
-            code = table.at[r, COLCODE]
-            if code.strip() == ENDMARKER:
-                break
-            grade = table.at[r, COLGRADE]
-            d[code] = grade
-            r += 1
-        return d
-
-    import pandas
-    try:
-        table = pandas.read_html(url, keep_default_na=False)[0]
-    except urllib.error.HTTPError as e:
-        return {ROLLCOLNAME: roll, ERRCOLNAME: e}
-    return data_abspos(table) | data_relpos(table)
-
-
 def do_exams(args):
-    for examname, urltemplate in exams('https://result.pup.ac.in'):
+    exams_iter = exams('https://result.pup.ac.in')
+    for examname, urltemplate in exams_iter:
         print(examname)
         print('\t', urltemplate or 'error')
 
