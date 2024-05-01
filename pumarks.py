@@ -24,6 +24,8 @@ def marks(urltemplate, startroll, endroll=None):
     if endroll is not None and startroll > endroll:
         raise ValueError('startroll > endroll')
 
+    import pandas
+
     def data(url, roll):
         ROLLCOLNAME = 'Roll'
         DATA_ABSPOS = (
@@ -64,7 +66,6 @@ def marks(urltemplate, startroll, endroll=None):
                 r += 1
             return d
 
-        import pandas
         try:
             table = pandas.read_html(url, keep_default_na=False)[0]
         except urllib.error.HTTPError as e:
