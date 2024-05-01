@@ -84,9 +84,13 @@ def marks(urltemplate, startroll, endroll=None):
 
 def do_exams(args):
     exams_iter = exams('https://result.pup.ac.in')
-    for examname, urltemplate in exams_iter:
-        print(examname)
-        print('\t', urltemplate or 'error')
+    driver = next(exams_iter)
+    try:
+        for examname, urltemplate in exams_iter:
+            print(examname)
+            print('\t', urltemplate or 'error')
+    except KeyboardInterrupt:
+        driver.quit()
 
 
 def exams(homepage_url):
@@ -98,6 +102,8 @@ def exams(homepage_url):
     options = webdriver.EdgeOptions()
     options.add_argument('--headless')
     driver = webdriver.Edge(options=options)
+    yield driver
+
     driver.get(homepage_url)
     aid_list = [a.get_attribute('id')
                 for a in driver.find_elements(By.TAG_NAME, 'a')]
