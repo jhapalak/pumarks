@@ -83,6 +83,47 @@ def data(url, roll):
     return data_abspos(table) | data_relpos(table)
 
 
+def do_exams(args):
+    for examname, urltemplate in exams('https://result.pup.ac.in'):
+        print(examname)
+        print('\t', urltemplate or 'error')
+
+
+def exams(homepage_url):
+    from selenium import webdriver
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.common.keys import Keys
+    from selenium.common.exceptions import NoSuchElementException
+
+    options = webdriver.EdgeOptions()
+    options.add_argument('--headless')
+    driver = webdriver.Edge(options=options)
+    driver.get(homepage_url)
+    aid_list = [a.get_attribute('id')
+                for a in driver.find_elements(By.TAG_NAME, 'a')]
+
+    for aid in aid_list:
+        driver.get(homepage_url)
+        a = driver.find_element(By.ID, aid)
+        examname = a.text
+        a.click()
+        try:
+            entry = driver.find_element(By.ID, 'MainContent_txtRegNumw')
+        except NoSuchElementException:
+            yield examname, None
+            continue
+        TRIAL_ROLL = '123456'
+        entry.send_keys(TRIAL_ROLL)
+        entry.send_keys(Keys.RETURN)
+        driver.switch_to.window(driver.window_handles[-1])
+        urltemplate = driver.current_url.replace(TRIAL_ROLL, '{}')
+        driver.close()
+        driver.switch_to.window(driver.window_handles[0])
+        yield examname, urltemplate
+
+    driver.quit()
+
+
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
 
@@ -92,6 +133,9 @@ parser_marks.add_argument('startroll', type=int)
 parser_marks.add_argument('endroll', type=int, nargs='?')
 parser_marks.add_argument('--output', '-o', default='pumarks.csv')
 parser_marks.set_defaults(func=do_marks)
+
+parser_exams = subparsers.add_parser('exams')
+parser_exams.set_defaults(func=do_exams)
 
 
 if __name__ == '__main__':
