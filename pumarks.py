@@ -3,14 +3,7 @@ import csv
 import urllib.error
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('urltemplate')
-parser.add_argument('startroll', type=int)
-parser.add_argument('endroll', type=int, nargs='?')
-parser.add_argument('--output', '-o', default='pumarks.csv')
-
-
-def main(args):
+def do_marks(args):
     marks = pumarks(args.urltemplate, args.startroll, args.endroll)
     with open(args.output, 'w', newline='') as f:
         w = csv.writer(f)
@@ -90,5 +83,17 @@ def data(url, roll):
     return data_abspos(table) | data_relpos(table)
 
 
+parser = argparse.ArgumentParser()
+subparsers = parser.add_subparsers()
+
+parser_marks = subparsers.add_parser('marks')
+parser_marks.add_argument('urltemplate')
+parser_marks.add_argument('startroll', type=int)
+parser_marks.add_argument('endroll', type=int, nargs='?')
+parser_marks.add_argument('--output', '-o', default='pumarks.csv')
+parser_marks.set_defaults(func=do_marks)
+
+
 if __name__ == '__main__':
-    main(parser.parse_args())
+    args = parser.parse_args()
+    args.func(args)
