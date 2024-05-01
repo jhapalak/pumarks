@@ -84,9 +84,12 @@ def marks(urltemplate, startroll, endroll=None):
 
 def do_exams(args):
     exams_iter = exams('https://result.pup.ac.in')
-    for examname, urltemplate in exams_iter:
-        print(examname)
-        print('\t', urltemplate or 'error')
+    try:
+        for examname, urltemplate in exams_iter:
+            print(examname)
+            print('\t', urltemplate or 'error')
+    except KeyboardInterrupt:
+        pass
 
 
 def exams(homepage_url):
