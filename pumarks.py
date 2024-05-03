@@ -132,10 +132,10 @@ def exams(homepage_url):
     driver.quit()
 
 
-def do_find(args):
+def do_rolls(args):
     validrolls = []
     try:
-        for roll, isvalid in find(args.urltemplate, args.startroll):
+        for roll, isvalid in rolls(args.urltemplate, args.startroll):
             print(roll)
             if isvalid:
                 validrolls.append(roll)
@@ -146,7 +146,7 @@ def do_find(args):
         print(validrolls if validrolls else '\nno valid rolls found')
 
 
-def find(urltemplate, startroll=None):
+def rolls(urltemplate, startroll=None):
     def isvalid(roll):
         try:
             response = urllib.request.urlopen(urltemplate.format(roll))
@@ -178,10 +178,10 @@ parser_marks.set_defaults(func=do_marks)
 parser_exams = subparsers.add_parser('exams')
 parser_exams.set_defaults(func=do_exams)
 
-parser_find = subparsers.add_parser('find')
-parser_find.add_argument('urltemplate')
-parser_find.add_argument('startroll', type=int, nargs='?')
-parser_find.set_defaults(func=do_find)
+parser_rolls = subparsers.add_parser('rolls')
+parser_rolls.add_argument('urltemplate')
+parser_rolls.add_argument('startroll', type=int, nargs='?')
+parser_rolls.set_defaults(func=do_rolls)
 
 
 if __name__ == '__main__':
