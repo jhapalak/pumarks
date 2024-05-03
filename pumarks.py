@@ -133,11 +133,17 @@ def exams(homepage_url):
 
 
 def do_find(args):
+    validrolls = []
     try:
         for roll, isvalid in find(args.urltemplate, args.startroll):
-            print(roll, 'valid' if isvalid else '')
+            print(roll)
+            if isvalid:
+                validrolls.append(roll)
+                print('valid')
     except KeyboardInterrupt:
         pass
+    finally:
+        print(validrolls if validrolls else '\nno valid rolls found')
 
 
 def find(urltemplate, startroll=None):
