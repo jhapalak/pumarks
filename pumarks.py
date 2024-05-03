@@ -149,9 +149,11 @@ def find(urltemplate, startroll=None):
         else:
             return True
 
-    startroll = startroll or 1
     def guessedrolls():
-        yield startroll
+        roll = startroll or 1
+        while True:
+            yield roll
+            roll += 1000
 
     for roll in guessedrolls():
         yield roll, isvalid(roll)
