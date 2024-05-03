@@ -1,6 +1,7 @@
 import argparse
 import csv
 import urllib.error
+import urllib.request
 
 
 def do_marks(args):
@@ -131,6 +132,31 @@ def exams(homepage_url):
     driver.quit()
 
 
+def do_find(args):
+    try:
+        for roll, isvalid in find(args.urltemplate, args.startroll):
+            print(roll, 'valid' if isvalid else '')
+    except KeyboardInterrupt:
+        pass
+
+
+def find(urltemplate, startroll=None):
+    def isvalid(roll):
+        try:
+            response = urllib.request.urlopen(urltemplate.format(roll))
+        except urllib.error.HTTPError:
+            return False
+        else:
+            return True
+
+    startroll = startroll or 1
+    def guessedrolls():
+        yield startroll
+
+    for roll in guessedrolls():
+        yield roll, isvalid(roll)
+
+
 parser = argparse.ArgumentParser()
 subparsers = parser.add_subparsers()
 
@@ -143,6 +169,11 @@ parser_marks.set_defaults(func=do_marks)
 
 parser_exams = subparsers.add_parser('exams')
 parser_exams.set_defaults(func=do_exams)
+
+parser_find = subparsers.add_parser('find')
+parser_find.add_argument('urltemplate')
+parser_find.add_argument('startroll', type=int, nargs='?')
+parser_find.set_defaults(func=do_find)
 
 
 if __name__ == '__main__':
