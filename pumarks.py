@@ -139,7 +139,7 @@ def do_rolls(args):
             print(roll)
             if isvalid:
                 validrolls.append(roll)
-                print('valid')
+                print('\tvalid')
     except KeyboardInterrupt:
         pass
     finally:
@@ -156,7 +156,7 @@ def rolls(urltemplate, startroll=None):
             return True
 
     def guessedrolls():
-        roll = startroll or 1
+        roll = startroll or 1001
         while True:
             yield roll
             roll += 1000
