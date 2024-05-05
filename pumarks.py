@@ -85,7 +85,7 @@ def marks(urltemplate, startroll, endroll=None):
 
 
 def do_exams(args):
-    exams_iter = exams('https://result.pup.ac.in')
+    exams_iter = exams('https://result.pup.ac.in', args.search)
     driver = next(exams_iter)
     try:
         for examname, urltemplate in exams_iter:
@@ -95,7 +95,7 @@ def do_exams(args):
         driver.quit()
 
 
-def exams(homepage_url):
+def exams(homepage_url, search=None):
     from selenium import webdriver
     from selenium.webdriver.common.by import By
     from selenium.webdriver.common.keys import Keys
@@ -107,8 +107,10 @@ def exams(homepage_url):
     yield driver
 
     driver.get(homepage_url)
+    search = search or ''
     aid_list = [a.get_attribute('id')
-                for a in driver.find_elements(By.TAG_NAME, 'a')]
+                for a in driver.find_elements(By.TAG_NAME, 'a')
+                if search in a.text]
 
     for aid in aid_list:
         driver.get(homepage_url)
@@ -176,6 +178,7 @@ parser_marks.add_argument('--output', '-o', default='pumarks.csv')
 parser_marks.set_defaults(func=do_marks)
 
 parser_exams = subparsers.add_parser('exams')
+parser_exams.add_argument('--search')
 parser_exams.set_defaults(func=do_exams)
 
 parser_rolls = subparsers.add_parser('rolls')
