@@ -137,7 +137,7 @@ def exams(homepage_url, search=None):
 def do_rolls(args):
     validrolls = []
     try:
-        for roll, isvalid in rolls(args.urltemplate, args.startroll):
+        for roll, isvalid in rolls(args.urltemplate):
             print(roll)
             if isvalid:
                 validrolls.append(roll)
@@ -148,7 +148,7 @@ def do_rolls(args):
         print(validrolls if validrolls else '\nno valid rolls found')
 
 
-def rolls(urltemplate, startroll=None):
+def rolls(urltemplate):
     def isvalid(roll):
         try:
             response = urllib.request.urlopen(urltemplate.format(roll))
@@ -158,7 +158,7 @@ def rolls(urltemplate, startroll=None):
             return True
 
     def guessedrolls():
-        roll = startroll or 1001
+        roll = 1001
         while True:
             yield roll
             roll += 1000
@@ -183,7 +183,6 @@ parser_exams.set_defaults(func=do_exams)
 
 parser_rolls = subparsers.add_parser('rolls')
 parser_rolls.add_argument('urltemplate')
-parser_rolls.add_argument('startroll', type=int, nargs='?')
 parser_rolls.set_defaults(func=do_rolls)
 
 
