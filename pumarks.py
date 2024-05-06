@@ -1,5 +1,6 @@
 import argparse
 import csv
+import itertools
 import urllib.error
 import urllib.request
 
@@ -133,7 +134,8 @@ def exams(homepage_url, search=None):
 def do_rolls(args):
     validrolls = []
     try:
-        for roll, isvalid in rolls(args.urltemplate, args.test):
+        for roll, isvalid in rolls(args.urltemplate, args.test_rolls,
+                                   args.test_ranges):
             print(roll)
             if isvalid:
                 validrolls.append(roll)
@@ -144,7 +146,7 @@ def do_rolls(args):
         print(validrolls if validrolls else '\nno valid rolls found')
 
 
-def rolls(urltemplate, test=None):
+def rolls(urltemplate, test_rolls=None, test_ranges=None):
     def isvalid(roll):
         try:
             response = urllib.request.urlopen(urltemplate.format(roll))
@@ -153,9 +155,12 @@ def rolls(urltemplate, test=None):
         else:
             return True
 
-    test = test or ()
+    test_rolls = test_rolls or ()
+    test_ranges = test_ranges or ()
+    test_ranges = [range(startroll, endroll + 1)
+                   for startroll, endroll in test_ranges]
 
-    rolls_to_test = test
+    rolls_to_test = itertools.chain(test_rolls, *test_ranges)
     for roll in rolls_to_test:
         yield roll, isvalid(roll)
 
@@ -176,7 +181,9 @@ parser_exams.set_defaults(func=do_exams)
 
 parser_rolls = subparsers.add_parser('rolls')
 parser_rolls.add_argument('urltemplate')
-parser_rolls.add_argument('--test', type=int, nargs='+')
+parser_rolls.add_argument('--rolls', type=int, nargs='+', dest='test_rolls')
+parser_rolls.add_argument('--range', type=int, nargs=2, action='append',
+                          dest='test_ranges')
 parser_rolls.set_defaults(func=do_rolls)
 
 
