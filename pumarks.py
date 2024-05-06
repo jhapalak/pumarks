@@ -153,13 +153,9 @@ def rolls(urltemplate, test=None):
         else:
             return True
 
-    def guessedrolls():
-        roll = 1001
-        while True:
-            yield roll
-            roll += 1000
+    test = test or ()
 
-    rolls_to_test = test or guessedrolls()
+    rolls_to_test = test
     for roll in rolls_to_test:
         yield roll, isvalid(roll)
 
