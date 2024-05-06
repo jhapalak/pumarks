@@ -86,13 +86,12 @@ def marks(urltemplate, startroll, endroll=None):
 
 def do_exams(args):
     exams_iter = exams('https://result.pup.ac.in', args.search)
-    driver = next(exams_iter)
     try:
         for examname, urltemplate in exams_iter:
             print(examname)
             print('\t', urltemplate or 'error')
     except KeyboardInterrupt:
-        driver.quit()
+        pass
 
 
 def exams(homepage_url, search=None):
@@ -102,36 +101,33 @@ def exams(homepage_url, search=None):
     from selenium.common.exceptions import NoSuchElementException
 
     options = webdriver.EdgeOptions()
-    options.add_argument('--headless')
-    driver = webdriver.Edge(options=options)
-    yield driver
+    options.add_argument('headless')
 
-    driver.get(homepage_url)
-    search = search or ''
-    aid_list = [a.get_attribute('id')
-                for a in driver.find_elements(By.TAG_NAME, 'a')
-                if search in a.text]
-
-    for aid in aid_list:
+    with webdriver.Edge(options=options) as driver:
         driver.get(homepage_url)
-        a = driver.find_element(By.ID, aid)
-        examname = a.text
-        a.click()
-        try:
-            entry = driver.find_element(By.ID, 'MainContent_txtRegNumw')
-        except NoSuchElementException:
-            yield examname, None
-            continue
-        TRIAL_ROLL = '123456'
-        entry.send_keys(TRIAL_ROLL)
-        entry.send_keys(Keys.RETURN)
-        driver.switch_to.window(driver.window_handles[-1])
-        urltemplate = driver.current_url.replace(TRIAL_ROLL, '{}')
-        driver.close()
-        driver.switch_to.window(driver.window_handles[0])
-        yield examname, urltemplate
+        search = search or ''
+        aid_list = [a.get_attribute('id')
+                    for a in driver.find_elements(By.TAG_NAME, 'a')
+                    if search in a.text]
 
-    driver.quit()
+        for aid in aid_list:
+            driver.get(homepage_url)
+            a = driver.find_element(By.ID, aid)
+            examname = a.text
+            a.click()
+            try:
+                entry = driver.find_element(By.ID, 'MainContent_txtRegNumw')
+            except NoSuchElementException:
+                yield examname, None
+                continue
+            TRIAL_ROLL = '123456'
+            entry.send_keys(TRIAL_ROLL)
+            entry.send_keys(Keys.RETURN)
+            driver.switch_to.window(driver.window_handles[-1])
+            urltemplate = driver.current_url.replace(TRIAL_ROLL, '{}')
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+            yield examname, urltemplate
 
 
 def do_rolls(args):
