@@ -149,19 +149,18 @@ def do_rolls(args):
 def rolls(urltemplate, test_rolls=None, test_ranges=None):
     def isvalid(roll):
         try:
-            response = urllib.request.urlopen(urltemplate.format(roll))
+            urllib.request.urlopen(urltemplate.format(roll))
         except urllib.error.HTTPError:
             return False
         else:
             return True
 
     test_rolls = test_rolls or ()
-    test_ranges = test_ranges or ()
     test_ranges = [range(startroll, endroll + 1)
-                   for startroll, endroll in test_ranges]
+                   for startroll, endroll
+                   in test_ranges or ()]
 
-    rolls_to_test = itertools.chain(test_rolls, *test_ranges)
-    for roll in rolls_to_test:
+    for roll in itertools.chain(test_rolls, *test_ranges):
         yield roll, isvalid(roll)
 
 
