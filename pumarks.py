@@ -180,9 +180,10 @@ parser_exams.set_defaults(func=do_exams)
 
 parser_rolls = subparsers.add_parser('rolls')
 parser_rolls.add_argument('urltemplate')
-parser_rolls.add_argument('--rolls', type=int, nargs='+', dest='test_rolls')
+parser_rolls.add_argument('--rolls', type=int, nargs='+', dest='test_rolls',
+                          metavar='ROLL')
 parser_rolls.add_argument('--range', type=int, nargs=2, action='append',
-                          dest='test_ranges')
+                          dest='test_ranges', metavar=('STARTROLL', 'ENDROLL'))
 parser_rolls.set_defaults(func=do_rolls)
 
 
