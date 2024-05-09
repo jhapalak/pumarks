@@ -5,6 +5,13 @@ import urllib.error
 import urllib.request
 
 
+def _urlopen(url):
+    try:
+        return urllib.request.urlopen(url)
+    except urllib.error.HTTPError:
+        return None
+
+
 def do_marks(args):
     marks_iter = marks(args.urltemplate, args.startroll, args.endroll)
     with open(args.output, 'w', newline='') as f:
@@ -68,10 +75,11 @@ def marks(urltemplate, startroll, endroll=None):
                 r += 1
             return d
 
-        try:
-            table = pandas.read_html(url, keep_default_na=False)[0]
-        except urllib.error.HTTPError as e:
-            return {ROLLCOLNAME: roll, ERRCOLNAME: e}
+        response = _urlopen(url)
+        if not response:
+            return {ROLLCOLNAME: roll, ERRCOLNAME: 'Error'}
+
+        table = pandas.read_html(response, keep_default_na=False)[0]
         return data_abspos(table) | data_relpos(table)
 
     colnames = []
@@ -133,35 +141,26 @@ def exams(homepage_url, search=None):
 
 def do_rolls(args):
     validrolls = []
+    rolls_iter = rolls(args.urltemplate, args.test_rolls, args.test_ranges)
     try:
-        for roll, isvalid in rolls(args.urltemplate, args.test_rolls,
-                                   args.test_ranges):
-            print(roll)
+        for roll, isvalid in rolls_iter:
+            print(roll, 'valid' if isvalid else '')
             if isvalid:
                 validrolls.append(roll)
-                print('\tvalid')
     except KeyboardInterrupt:
         pass
     finally:
-        print(validrolls if validrolls else '\nno valid rolls found')
+        print(validrolls if validrolls else 'no valid rolls found')
 
 
 def rolls(urltemplate, test_rolls=None, test_ranges=None):
-    def isvalid(roll):
-        try:
-            urllib.request.urlopen(urltemplate.format(roll))
-        except urllib.error.HTTPError:
-            return False
-        else:
-            return True
-
     test_rolls = test_rolls or ()
     test_ranges = [range(startroll, endroll + 1)
                    for startroll, endroll
                    in test_ranges or ()]
 
     for roll in itertools.chain(test_rolls, *test_ranges):
-        yield roll, isvalid(roll)
+        yield roll, bool(_urlopen(urltemplate.format(roll)))
 
 
 parser = argparse.ArgumentParser()
