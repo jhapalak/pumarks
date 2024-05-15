@@ -36,51 +36,57 @@ def marks(urltemplate, startroll, endroll=None):
     import pandas
 
     def data(url, roll):
-        ROLLCOLNAME = 'Roll'
-        DATA_ABSPOS = (
-            (ROLLCOLNAME,   ( 7, 14), lambda s: s[s.find(':')+1: ].strip()),
-            ('College',     ( 5, 14), lambda s: s[s.find(':')+1: ].strip()),
-            ('Honours',     ( 5,  0), lambda s: s[s.find('(')+1: s.find(')')]),
-            ('Name',        ( 7,  0), lambda s: s[s.find(':')+1: ].strip().title()),
-            ('SGPA',        (11, 11), None),
-            ('Result',      (11, 12), None),
-            ('CGPA',        (11, 13), None),
-            ('Status',      (11, 14), None),
-        )
-        ERRCOLNAME = DATA_ABSPOS[1][0]
-
-        def data_abspos(table):
-            d = {}
-            for colname, (nrow, ncol), fmtfunc in DATA_ABSPOS:
-                text = table.at[nrow, ncol]
-                if fmtfunc:
-                    text = fmtfunc(text)
-                d[colname] = text
-            return d
-
-        ROWSTART = 12
-        COLCODE = 0
-        COLGRADE = 8
-        ENDMARKER = 'Total'
-
-        def data_relpos(table):
-            d = {}
-            r = ROWSTART
-            while True:
-                code = table.at[r, COLCODE]
-                if code.strip() == ENDMARKER:
-                    break
-                grade = table.at[r, COLGRADE]
-                d[code] = grade
-                r += 1
-            return d
+        ROLL_COLUMN_NAME = 'Roll'
 
         response = _urlopen(url)
         if not response:
-            return {ROLLCOLNAME: roll, ERRCOLNAME: 'Error'}
+            return {ROLL_COLUMN_NAME: roll, '<Error>': 'Error'}
 
         table = pandas.read_html(response, keep_default_na=False)[0]
-        return data_abspos(table) | data_relpos(table)
+        table = table.to_numpy()
+
+        def data_meta(table):
+            d = {}
+            for cell in itertools.chain.from_iterable(table):
+                if ':' in cell:
+                    key, value = cell.split(':', 1)
+                    if 'roll' in key.lower():
+                        key = ROLL_COLUMN_NAME
+                    d[key] = value
+            return d
+
+        def data_marks(table):
+            header_indices = []
+            for i, row in enumerate(table):
+                if 'course' in row[0].lower():
+                    header_indices.append(i)
+
+            hstart = header_indices[0]
+            hend = header_indices[-1]
+
+            # remove data cells that overflow into header
+            header_rows = table[hstart:hend+1]
+            for i, cell in enumerate(header_rows[-1]):
+                if table[hend+1][i] == cell:
+                    header_rows[-1][i] = '<removed>'
+
+            flat_header = [' >> '.join(header_cells) for header_cells in zip(*header_rows)]
+
+            tend = None
+            for i, row in enumerate(table[hend+1:], start=hend+1):
+                if len(set(row)) == 1:
+                    tend = i
+                    break
+
+            d = {}
+            for row in table[hend+1:tend]:
+                key = row[0]
+                for hdr, cell in zip(flat_header, row):
+                    d[key + ' >> ' + hdr] = cell
+
+            return d
+
+        return data_meta(table) | data_marks(table)
 
     colnames = []
     roll = startroll - 1
