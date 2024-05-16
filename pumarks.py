@@ -52,7 +52,7 @@ def marks(urltemplate, startroll, endroll=None):
                     key, value = cell.split(':', 1)
                     if 'roll' in key.lower():
                         key = ROLL_COLUMN_NAME
-                    d[key] = value
+                    d[key] = value.strip()
             return d
 
         def data_marks(table):
