@@ -5,14 +5,14 @@ import urllib.error
 import urllib.request
 
 
-def do_marks(args):
+def main(args):
     rolls = args.rolls or []
     roll_ranges = [range(startroll, endroll + 1)
                    for startroll, endroll in (args.roll_ranges or [])]
     rolls_counter = (itertools.count(args.start_roll)
                      if args.start_roll else [])
 
-    marks_iter = marks(
+    marks_iter = pumarks(
         args.urltemplate,
         itertools.chain(rolls, *roll_ranges, rolls_counter))
 
@@ -31,7 +31,7 @@ def do_marks(args):
                 print(colnames)
 
 
-def marks(urltemplate, rolls):
+def pumarks(urltemplate, rolls):
     import pandas
 
     def data(url, roll):
@@ -98,70 +98,15 @@ def marks(urltemplate, rolls):
         yield colnames, row
 
 
-def do_exams(args):
-    exams_iter = exams('https://result.pup.ac.in', args.search)
-    try:
-        for examname, urltemplate in exams_iter:
-            print(examname)
-            print('\t', urltemplate or 'error')
-    except KeyboardInterrupt:
-        pass
-
-
-def exams(homepage_url, search=None):
-    from selenium import webdriver
-    from selenium.webdriver.common.by import By
-    from selenium.webdriver.common.keys import Keys
-    from selenium.common.exceptions import NoSuchElementException
-
-    options = webdriver.EdgeOptions()
-    options.add_argument('headless')
-
-    with webdriver.Edge(options=options) as driver:
-        driver.get(homepage_url)
-        search = search or ''
-        aid_list = [a.get_attribute('id')
-                    for a in driver.find_elements(By.TAG_NAME, 'a')
-                    if search in a.text]
-
-        for aid in aid_list:
-            driver.get(homepage_url)
-            a = driver.find_element(By.ID, aid)
-            examname = a.text
-            a.click()
-            try:
-                entry = driver.find_element(By.ID, 'MainContent_txtRegNumw')
-            except NoSuchElementException:
-                yield examname, None
-                continue
-            TRIAL_ROLL = '123456'
-            entry.send_keys(TRIAL_ROLL)
-            entry.send_keys(Keys.RETURN)
-            driver.switch_to.window(driver.window_handles[-1])
-            urltemplate = driver.current_url.replace(TRIAL_ROLL, '{}')
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-            yield examname, urltemplate
-
-
 parser = argparse.ArgumentParser()
-subparsers = parser.add_subparsers()
-
-parser_marks = subparsers.add_parser('marks')
-parser_marks.add_argument('urltemplate')
-parser_marks.add_argument('--output', '-o', default='pumarks.csv')
-parser_marks.add_argument('--start', type=int, dest='start_roll')
-parser_marks.add_argument('--rolls', type=int, nargs='+', dest='rolls',
-                          metavar='ROLL')
-parser_marks.add_argument('--range', type=int, nargs=2, action='append',
-                          dest='roll_ranges', metavar=('STARTROLL', 'ENDROLL'))
-parser_marks.set_defaults(func=do_marks)
-
-parser_exams = subparsers.add_parser('exams')
-parser_exams.add_argument('--search')
-parser_exams.set_defaults(func=do_exams)
+parser.add_argument('urltemplate')
+parser.add_argument('--output', '-o', default='pumarks.csv')
+parser.add_argument('--start', type=int, dest='start_roll')
+parser.add_argument('--rolls', type=int, nargs='+', dest='rolls',
+                    metavar='ROLL')
+parser.add_argument('--range', type=int, nargs=2, action='append',
+                    dest='roll_ranges', metavar=('STARTROLL', 'ENDROLL'))
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
-    args.func(args)
+    main(parser.parse_args())
