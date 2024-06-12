@@ -11,11 +11,9 @@ def main(args):
                    for startroll, endroll in (args.roll_ranges or [])]
     rolls_counter = (itertools.count(args.start_roll)
                      if args.start_roll else [])
-
     marks_iter = pumarks(
         args.urltemplate,
         itertools.chain(rolls, *roll_ranges, rolls_counter))
-
     with open(args.output, 'w', newline='') as f:
         w = csv.writer(f)
         colnames = None
@@ -35,16 +33,6 @@ def pumarks(urltemplate, rolls):
     import pandas
 
     def data(url, roll):
-        ROLL_COLUMN_NAME = 'Roll'
-
-        try:
-            response = urllib.request.urlopen(url)
-        except urllib.error.HTTPError as e:
-            return {ROLL_COLUMN_NAME: roll, '<Error>': e}
-
-        table = pandas.read_html(response, keep_default_na=False)[0]
-        table = table.to_numpy()
-
         def data_meta(table):
             d = {}
             for cell in itertools.chain.from_iterable(table):
@@ -60,33 +48,33 @@ def pumarks(urltemplate, rolls):
             for i, row in enumerate(table):
                 if 'course' in row[0].lower():
                     header_indices.append(i)
-
             hstart = header_indices[0]
             hend = header_indices[-1]
-
-            # remove data cells that overflow into header
             header_rows = table[hstart:hend+1]
             for i, cell in enumerate(header_rows[-1]):
                 if table[hend+1][i] == cell:
                     header_rows[-1][i] = '<removed>'
-
             flat_header = [' >> '.join(header_cells)
                            for header_cells in zip(*header_rows)]
-
             tend = None
             for i, row in enumerate(table[hend+1:], start=hend+1):
                 if len(set(row)) == 1:
                     tend = i
                     break
-
             d = {}
             for row in table[hend+1:tend]:
                 key = row[0]
                 for hdr, cell in zip(flat_header, row):
                     d[key + ' >> ' + hdr] = cell
-
             return d
 
+        ROLL_COLUMN_NAME = 'Roll'
+        try:
+            response = urllib.request.urlopen(url)
+        except urllib.error.HTTPError as e:
+            return {ROLL_COLUMN_NAME: roll, '<Error>': e}
+        table = pandas.read_html(response, keep_default_na=False)[0]
+        table = table.to_numpy()
         return data_meta(table) | data_marks(table)
 
     colnames = []
